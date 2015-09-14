@@ -430,6 +430,9 @@ func EncodeSequence(toEncode []interface{}) ([]byte, error) {
 			for _, b := range enc {
 				toEncap = append(toEncap, b)
 			}
+		case BERType:
+			toEncap = append(toEncap, byte(val))
+			toEncap = append(toEncap, 0)
 		case []interface{}:
 			enc, err := EncodeSequence(val)
 			if err != nil {
