@@ -6,6 +6,7 @@ import (
 	"net"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestCounter32Decoding(t *testing.T) {
@@ -159,6 +160,39 @@ func TestTrapV2(t *testing.T) {
 	}
 
 	v := d[3].([]interface{})[4].([]interface{})[3].([]interface{})[2].(string)
+	if v != "test" {
+		t.Fatalf("Failed to decode trap sequence, got %q want 'test'", v)
+	}
+}
+
+func TestTrapV1(t *testing.T) {
+	// snmptrap -v1 -c public -d 127.0.0.1:1062 1.2.3.4 192.168.5.201 4 0 '1' SNMPv2-MIB::sysName.0 s "test"
+	encoded := "303502010004067075626C6963A42806032A03044004C0A805C90201040201004301013012301006082B06010201010500040474657374"
+	decoded := []interface{}{Sequence, int64(0), "public", []interface{}{
+		AsnTrapV1,
+		MustParseOid("1.2.3.4"),
+		net.ParseIP("192.168.5.201"),
+		int64(4),
+		int64(0),
+		time.Duration(10) * time.Millisecond,
+		[]interface{}{Sequence,
+			[]interface{}{Sequence, MustParseOid("1.3.6.1.2.1.1.5.0"), "test"},
+		},
+	}}
+
+	encodedBytes, err := hex.DecodeString(encoded)
+	if err != nil {
+		t.Fatalf("Error when decoding hex %s", encodedBytes)
+	}
+	result, err := DecodeSequence(encodedBytes)
+	if err != nil {
+		t.Fatalf("Error while decoding %v => %v", encoded, err)
+	}
+	if !reflect.DeepEqual(result, decoded) {
+		t.Errorf("Not decoded as expected. Encoded: %v\nExpected: %v\nResult: %v", encoded, decoded, result)
+	}
+
+	v := result[3].([]interface{})[6].([]interface{})[1].([]interface{})[2].(string)
 	if v != "test" {
 		t.Fatalf("Failed to decode trap sequence, got %q want 'test'", v)
 	}
