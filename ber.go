@@ -87,6 +87,7 @@ const (
 	AsnGetBulkRequest BERType = 0xa5
 	AsnTrapV2         BERType = 0xa7
 
+	NoSuchObject   BERType = 0x80
 	NoSuchInstance BERType = 0x81
 	EndOfMibView   BERType = 0x82
 )
@@ -330,8 +331,10 @@ func DecodeSequence(toparse []byte) ([]interface{}, error) {
 				return nil, err
 			}
 			result = append(result, pdu)
+		case NoSuchObject:
+			result = append(result, NoSuchObject)
 		case NoSuchInstance:
-			return nil, fmt.Errorf("no such instance. Received bytes: %v", toparse)
+			result = append(result, NoSuchInstance)
 		case EndOfMibView:
 			result = append(result, EndOfMibView)
 		default:
@@ -428,6 +431,9 @@ func EncodeSequence(toEncode []interface{}) ([]byte, error) {
 			for _, b := range enc {
 				toEncap = append(toEncap, b)
 			}
+		case BERType:
+			toEncap = append(toEncap, byte(val))
+			toEncap = append(toEncap, 0)
 		case []interface{}:
 			enc, err := EncodeSequence(val)
 			if err != nil {

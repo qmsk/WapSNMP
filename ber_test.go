@@ -99,6 +99,9 @@ func TestSequenceDecoding(t *testing.T) {
 		{"3012060a2b0601020102020105344204ffffffff", []interface{}{Sequence, MustParseOid("1.3.6.1.2.1.2.2.1.5.52"), Gauge(4294967295)}},
 		{"300f060a2b060102010202011601060100", []interface{}{Sequence, MustParseOid("1.3.6.1.2.1.2.2.1.22.1"), MustParseOid("0.0")}},
 		{"3006400401020304", []interface{}{Sequence, net.ParseIP("1.2.3.4")}},
+		{"300E300C06082B060102010108008000", []interface{}{Sequence, []interface{}{Sequence, MustParseOid("1.3.6.1.2.1.1.8.0"), NoSuchObject}}},
+		{"3010300E060A2B06010201010901020B8100", []interface{}{Sequence, []interface{}{Sequence, MustParseOid("1.3.6.1.2.1.1.9.1.2.11"), NoSuchInstance}}},
+		{"300C300A06062B06010603118200", []interface{}{Sequence, []interface{}{Sequence, MustParseOid(".1.3.6.1.6.3.17"), EndOfMibView}}},
 	}
 
 	for _, test := range tests {
@@ -136,13 +139,6 @@ func TestSequenceDecoding(t *testing.T) {
 
 			t.Errorf("Not encoded as expected. Decoded: %v\nExpected: %v\nResult: %v\n          %v", test.decoded, hex.EncodeToString(encodedBytes), hex.EncodeToString(result), here)
 		}
-	}
-}
-
-func TestDecodeNoSuchInstance(t *testing.T) {
-	_, err := DecodeSequence([]byte{0x30, 0x0b, 0x06, 0x07, 0x2b, 0x06, 0x01, 0x02, 0x01, 0x01, 0x03, 0x81, 0x00})
-	if err == nil {
-		t.Error("got nil error for this decode, wanted error")
 	}
 }
 
