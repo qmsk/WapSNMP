@@ -59,6 +59,8 @@ The library has native support for a whole lot of SNMP types :
 * Counter32
 * Gauge32
 * TimeTicks
+* NoSuchObject
+* NoSuchInstance
 * EndOfMibView
 
 And this should be easy to expand.
